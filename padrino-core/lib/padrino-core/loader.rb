@@ -1,6 +1,6 @@
 module Padrino
   class << self
-
+    MTIMES = {}
     ##
     # Hooks to be called before a load/reload
     #
@@ -42,11 +42,12 @@ module Padrino
       set_encoding
       set_load_paths(*load_paths) # We set the padrino load paths
       Padrino.logger # Initialize our logger
+      Reloader.start! # Start our worker
       before_load.each { |bl| bl.call } # Run before hooks
       dependency_paths.each { |path| require_dependencies(path) }
-      Reloader::Stat.run! # We need to fill our Stat::CACHE
       after_load.each { |al| al.call } # Run after hooks
       Thread.current[:padrino_loaded] = true
+      start_rotation!
     end
 
     ##
@@ -54,8 +55,30 @@ module Padrino
     #
     def reload!
       before_load.each { |bl| bl.call } # Run before hooks
-      Reloader::Stat.reload! # detects the modified files
-      after_load.each { |al| al.call } # Run after hooks
+      Reloader.reload!                  # detects the modified files
+      after_load.each { |al| al.call }  # Run after hooks
+    end
+
+    def start_rotation!
+      Thread.new do
+        GC.start
+        loop do
+          Dir[Padrino.root("**", "/*.rb")].each do |file|
+            file = File.expand_path(file)
+            if MTIMES[file].blank?
+              # TODO: prevent loop here!
+              # logger.debug "Detected new file #{file}"
+              # require_dependencies(file)
+              # reload!
+            elsif MTIMES[file] < File.mtime(file)
+              logger.debug "Reloading app because #{file} changed"
+              reload!
+            end
+          end
+          sleep 0.5
+        end
+        Thread.exit
+      end
     end
 
     ##
@@ -107,8 +130,10 @@ module Padrino
 
         # Now we try to require our dependencies
         files.each do |file|
+          file = File.expand_path(file)
           begin
-            Reloader::Stat.safe_load(file)
+            require file
+            MTIMES[file] = File.mtime(file)
             files.delete(file)
           rescue LoadError => e
             errors << e
@@ -159,7 +184,6 @@ module Padrino
         FileSet.glob(path) { |file| load(file) }
       end
     end
-    alias :load_dependency :load_dependencies
 
     ##
     # Concat to $LOAD_PATH the given paths
