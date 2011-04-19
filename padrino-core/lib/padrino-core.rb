@@ -40,7 +40,7 @@ module Padrino
       raise ApplicationLoadError, "At least one app must be mounted!" unless self.mounted_apps && self.mounted_apps.any?
       router = Padrino::Router.new
       self.mounted_apps.each { |app| app.map_onto(router) }
-
+      Padrino::Reloader.watch!
       unless middleware.empty?
         builder = Rack::Builder.new
         middleware.each { |c,a,b| builder.use(c, *a, &b) }
