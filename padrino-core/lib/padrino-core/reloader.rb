@@ -15,24 +15,20 @@ module Padrino
         @_exclude ||= %w(test spec tmp features config public db)
       end
 
+      def enabled=(value)
+        @_enabled = value
+      end
+
+      def enabled
+        @_enabled ||= Kernel.respond_to?(:fork) && Padrino.env == :development
+      end
+      alias :enabled? :enabled
+
       def start!
-        unless Kernel.respond_to?(:fork)
-          puts "<= Your ruby env doesn't support fork so reloading is not available!"
+        unless enabled?
+          puts "<= Reloader is not enabled in #{Padrino.env} environment, or your ruby version dosn't support forking"
           return
         end
-
-        if Padrino.env == :production
-          puts "<= Reloader is not enabled in production environment"
-          return
-        end
-
-
-        # Enable REE garbage collection
-        if GC.respond_to?(:copy_on_write_friendly=)
-          GC.copy_on_write_friendly = true
-        end
-
-        puts "=> Parent pid: #{Process.pid}"
 
         loop do
           pid = fork
@@ -56,7 +52,7 @@ module Padrino
             # Process::WNOHANG flag is not available on all platforms
             begin
               p, status = Process.wait2(pid, Process::WNOHANG)
-              status.exitstatus == 18 ? break : exit(status) if status
+              status.exitstatus == 180 ? break : exit(status) if status
             rescue Errno::ECHILD
             end
           end
@@ -68,11 +64,15 @@ module Padrino
       end
 
       def reload!
-        exit(18)
+        unless enabled?
+          puts "<= Reloader is not enabled in #{Padrino.env} environment, or your ruby version dosn't support forking"
+          return
+        end
+        exit(180)
       end
 
       def watch!
-        return if Padrino.env == :production
+        return unless enabled?
         Thread.new do
           GC.start
           loop do

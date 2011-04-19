@@ -1,5 +1,4 @@
 module Padrino
-
   ##
   # Run the Padrino apps as a self-hosted server using:
   # thin, mongrel, webrick in that order.
@@ -42,7 +41,6 @@ module Padrino
 
         handler.run Padrino.application, :Host => host, :Port => port do |server|
           trap(:INT) do
-            # Use thins' hard #stop! if available, otherwise just #stop
             server.respond_to?(:stop!) ? server.stop! : server.stop
             puts "<= Padrino has ended his set (crowd applauds)"
           end

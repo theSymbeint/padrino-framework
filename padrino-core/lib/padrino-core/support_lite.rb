@@ -106,6 +106,9 @@ class FileSet
   end
 end unless defined?(FileSet)
 
+# Enable REE garbage collection
+GC.copy_on_write_friendly = true if GC.respond_to?(:copy_on_write_friendly=)
+
 ##
 # Loads our locales configuration files
 #
