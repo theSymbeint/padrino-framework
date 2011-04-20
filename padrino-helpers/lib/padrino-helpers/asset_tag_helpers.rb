@@ -39,7 +39,7 @@ module Padrino
           link_content = capture_html(&block)
           return '' unless parse_conditions(url, options)
           result_link = content_tag(:a, link_content, options)
-          block_is_template?(block) ? concat_content(result_link) : result_link
+          result_link
         else
           name, url = args[0], (args[1] ? args[1] + anchor.to_s : anchor || 'javascript:void(0);')
           return name unless parse_conditions(url, options)

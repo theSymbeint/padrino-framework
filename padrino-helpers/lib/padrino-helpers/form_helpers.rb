@@ -27,7 +27,7 @@ module Padrino
         instance = builder_instance(object, settings)
         fields_html = capture_html(instance, &block)
         fields_html << instance.hidden_field(:id) if instance.send(:nested_object_id)
-        concat_content fields_html
+        fields_html
       end
 
       ##
@@ -47,7 +47,7 @@ module Padrino
         options["accept-charset"] ||= "UTF-8"
         inner_form_html  = hidden_form_method_field(desired_method)
         inner_form_html += capture_html(&block)
-        concat_content content_tag('form', inner_form_html, options)
+        content_tag('form', inner_form_html, options)
       end
 
       ##
@@ -77,7 +77,7 @@ module Padrino
         legend_text = args[0].is_a?(String) ? args.first : nil
         legend_html = legend_text.blank? ? '' : content_tag(:legend, legend_text)
         field_set_content = legend_html + capture_html(&block)
-        concat_content content_tag('fieldset', field_set_content, options)
+        content_tag('fieldset', field_set_content, options)
       end
 
       ##
@@ -199,7 +199,7 @@ module Padrino
         caption_text << "<span class='required'>*</span> " if options.delete(:required)
         if block_given? # label with inner content
           label_content = caption_text + capture_html(&block)
-          concat_content(content_tag(:label, label_content, options))
+          content_tag(:label, label_content, options)
         else # regular label
           content_tag(:label, caption_text, options)
         end

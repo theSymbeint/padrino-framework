@@ -18,25 +18,6 @@ class MarkupDemo < Sinatra::Base
     def show(kind, template)
       send kind.to_sym, template.to_sym
     end
-
-    def captured_content(&block)
-      content_html = capture_html(&block)
-      "<p>#{content_html}</p>"
-    end
-
-    def concat_in_p(content_html)
-      concat_content "<p>#{content_html}</p>"
-    end
-
-    def ruby_not_template_block
-      determine_block_is_template('ruby') do
-        content_tag(:span, "This not a template block")
-      end
-    end
-
-    def determine_block_is_template(name, &block)
-      concat_content "<p class='is_template'>The #{name} block passed in is a template</p>" if block_is_template?(block)
-    end
   end
 end
 

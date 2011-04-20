@@ -1,6 +1,16 @@
 module Padrino
   module Helpers
     module OutputHelpers
+
+      def self.engine
+        @_engine ||= {}
+      end
+
+      engine[:haml]   = "!= capture_haml(*args, &block)"
+      engine[:erb]    = "<% yield(*args) %>"
+      engine[:erubis] = "<%= yield(*args) %>"
+      engine[:slim]   = "== yield(*args)"
+
       ##
       # Captures the html from a block of template code for any available handler
       #
@@ -8,44 +18,10 @@ module Padrino
       #
       #   capture_html(&block) => "...html..."
       #
-      def capture_html(*args, &block)
-        handler = self.find_proper_handler
-        if handler && handler.is_type? && handler.block_is_type?(block)
-          captured_html = handler.capture_from_template(*args, &block)
-        end
-        # invoking the block directly if there was no template
-        captured_html = block_given? && block.call(*args) if captured_html.blank?
-        captured_html
+      def capture(*args, &block)
+        render(current_engine, Padrino::Helpers::OutputHelpers.engine[@current_engine], { :layout => false }, :args => args, :block => block, &block)
       end
-
-      ##
-      # Outputs the given text to the templates buffer directly
-      #
-      # ==== Examples
-      #
-      #   concat_content("This will be output to the template buffer")
-      #
-      def concat_content(text="")
-        handler = self.find_proper_handler
-        if handler && handler.is_type?
-          handler.concat_to_template(text)
-        else # theres no template to concat, return the text directly
-          text
-        end
-      end
-
-      ##
-      # Returns true if the block is from a supported template type; false otherwise.
-      # Used to determine if html should be returned or concatenated to the view
-      #
-      # ==== Examples
-      #
-      #   block_is_template?(block)
-      #
-      def block_is_template?(block)
-        handler = self.find_proper_handler
-        block && handler && handler.block_is_type?(block)
-      end
+      alias :capture_html :capture
 
       ##
       # Capture a block or text of content to be rendered at a later time.
@@ -73,11 +49,7 @@ module Padrino
       #   yield_content(:title) || "My page title"
       #
       def yield_content(key, *args)
-        blocks = content_blocks[key.to_sym]
-        return nil if blocks.empty?
-        blocks.map { |content|
-          capture_html(*args, &content)
-        }.join
+        content_blocks[key.to_sym].map { |b| capture(*args, &b) }.join
       end
 
       protected
@@ -90,18 +62,6 @@ module Padrino
         #
         def content_blocks
           @content_blocks ||= Hash.new {|h,k| h[k] = [] }
-        end
-
-        ##
-        # Retrieves the template handler for the given output context.
-        # Can handle any output related to capturing or concating in a given template.
-        #
-        # ==== Examples
-        #
-        #   find_proper_handler => <OutputHelpers::HamlHandler>
-        #
-        def find_proper_handler
-          OutputHelpers.handlers.map { |h| h.new(self) }.find { |h| h.is_type? }
         end
     end # OutputHelpers
   end # Helpers

@@ -10,7 +10,7 @@ methods should be very familiar to anyone who has used rails view helpers.
 
 Output helpers are a collection of important methods for managing, capturing and displaying output
 in various ways and is used frequently to support higher-level helper functions. There are
-three output helpers worth mentioning: <tt>content_for</tt>, <tt>capture_html</tt>, and <tt>concat_content</tt>
+three output helpers worth mentioning: <tt>content_for</tt> and <tt>capture_html</tt>
 
 The content_for functionality supports capturing content and then rendering this into a different place
 such as within a layout. One such popular example is including assets onto the layout from a template:
@@ -36,7 +36,7 @@ Added to a template, this will capture the includes from the block and allow the
 This will automatically insert the contents of the block (in this case a stylesheet include) into the
 location the content is yielded within the layout.
 
-The capture_html and the concat_content methods allow content to be manipulated and stored for use in building
+The capture_html methods allow content to be manipulated and stored for use in building
 additional helpers accepting blocks or displaying information in a template. One example is the use of
 these in constructing a simplified 'form_tag' helper which accepts a block.
 
@@ -44,11 +44,11 @@ these in constructing a simplified 'form_tag' helper which accepts a block.
   def form_tag(url, options={}, &block)
     # ... truncated ...
     inner_form_html = capture_html(&block)
-    concat_content '<form>' + inner_form_html + '</form>'
+    '<form>' + inner_form_html + '</form>'
   end
 
 This will capture the template body passed into the form_tag block and then append the content
-to the template through the use of <tt>concat_content</tt>. Note have been built to work for both haml and erb
+to the template. Note have been built to work for both haml and erb
 templates using the same syntax.
 
 For more information on using output helpers, check out the guide for
