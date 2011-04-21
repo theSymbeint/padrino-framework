@@ -6,10 +6,10 @@ module Padrino
         @_engine ||= {}
       end
 
-      engine[:haml]   = "!= capture_haml(*args, &block)"
-      engine[:erb]    = "<% yield(*args) %>"
       engine[:erubis] = "<%= yield(*args) %>"
+      engine[:erb]    = "<% yield(*args) %>"
       engine[:slim]   = "== yield(*args)"
+      engine[:haml]   = "!= capture_haml(*args, &block)"
 
       ##
       # Captures the html from a block of template code for any available handler
@@ -19,7 +19,10 @@ module Padrino
       #   capture_html(&block) => "...html..."
       #
       def capture(*args, &block)
+        eval '_buf, @buf_was = "", _buf if defined?(_buf)', block.binding
         render(current_engine, Padrino::Helpers::OutputHelpers.engine[@current_engine], { :layout => false }, :args => args, :block => block, &block)
+      ensure
+        eval '_buf = @buf_was if defined?(_buf)', block.binding
       end
       alias :capture_html :capture
 
