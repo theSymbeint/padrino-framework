@@ -19,12 +19,28 @@ module Padrino
       #   capture_html(&block) => "...html..."
       #
       def capture(*args, &block)
-        eval '_buf, @buf_was = "", _buf if defined?(_buf)', block.binding
+        eval '_buf, @_buf_was = "", _buf if defined?(_buf)', block.binding
         render(current_engine, Padrino::Helpers::OutputHelpers.engine[@current_engine], { :layout => false }, :args => args, :block => block, &block)
       ensure
-        eval '_buf = @buf_was if defined?(_buf)', block.binding
+        eval '_buf = @_buf_was if defined?(_buf)', block.binding
       end
       alias :capture_html :capture
+
+      ##
+      # Outputs the given text to the templates buffer directly
+      #
+      # ==== Examples
+      #
+      #   concat("This will be output to the template buffer")
+      #
+      def concat(content)
+        case current_engine
+          when :haml         then haml_concat(content)
+          when :erb, :erubis then @_out_buf << content
+        end
+      end
+      alias :concat_html :concat
+      alias :concat_content :concat
 
       ##
       # Capture a block or text of content to be rendered at a later time.

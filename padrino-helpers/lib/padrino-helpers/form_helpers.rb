@@ -47,7 +47,7 @@ module Padrino
         options["accept-charset"] ||= "UTF-8"
         inner_form_html  = hidden_form_method_field(desired_method)
         inner_form_html += capture_html(&block)
-        content_tag('form', inner_form_html, options)
+        concat content_tag('form', inner_form_html, options)
       end
 
       ##
