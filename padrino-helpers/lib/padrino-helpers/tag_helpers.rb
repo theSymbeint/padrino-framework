@@ -27,7 +27,7 @@ module Padrino
         options = args.extract_options!
         tag_html = block_given? ? capture_html(&block) : args[1]
         tag_result = tag(name, options.merge(:content => tag_html))
-        tag_result
+        block_given? ? concat(tag_result) : tag_result
       end
 
       ##

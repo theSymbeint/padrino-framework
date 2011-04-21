@@ -39,7 +39,7 @@ module Padrino
           link_content = capture_html(&block)
           return '' unless parse_conditions(url, options)
           result_link = content_tag(:a, link_content, options)
-          result_link
+          concat result_link
         else
           name, url = args[0], (args[1] ? args[1] + anchor.to_s : anchor || 'javascript:void(0);')
           return name unless parse_conditions(url, options)
@@ -70,7 +70,7 @@ module Padrino
         options["data-remote"] = "true" if options.delete(:remote)
         inner_form_html  = hidden_form_method_field(desired_method)
         inner_form_html += block_given? ? capture_html(&block) : submit_tag(name)
-        content_tag('form', inner_form_html, options)
+        concat content_tag('form', inner_form_html, options)
       end
 
       ##

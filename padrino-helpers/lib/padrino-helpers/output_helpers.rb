@@ -1,7 +1,6 @@
 module Padrino
   module Helpers
     module OutputHelpers
-
       def self.engine
         @_engine ||= {}
       end
@@ -20,7 +19,7 @@ module Padrino
       #
       def capture(*args, &block)
         eval '_buf, @_buf_was = "", _buf if defined?(_buf)', block.binding
-        render(current_engine, Padrino::Helpers::OutputHelpers.engine[@current_engine], { :layout => false }, :args => args, :block => block, &block)
+        render(@current_engine, Padrino::Helpers::OutputHelpers.engine[@current_engine], { :layout => false }, :args => args, :block => block, &block)
       ensure
         eval '_buf = @_buf_was if defined?(_buf)', block.binding
       end
@@ -34,9 +33,10 @@ module Padrino
       #   concat("This will be output to the template buffer")
       #
       def concat(content)
-        case current_engine
-          when :haml         then haml_concat(content)
-          when :erb, :erubis then @_out_buf << content
+        case @current_engine
+          when :haml                then haml_concat(content)
+          when :erb, :erubis, :slim then @_out_buf << content
+          else content
         end
       end
       alias :concat_html :concat
@@ -82,6 +82,19 @@ module Padrino
         def content_blocks
           @content_blocks ||= Hash.new {|h,k| h[k] = [] }
         end
+
+      private
+        ##
+        # Capture from a pure sinatra app the engine used in the template
+        # or if we are in a padrino application we use that.
+        #
+        def render(engine, *)
+          @current_engine = engine # Sinatra use this render :haml, padrino use their custom current_engine.
+          super
+        end
     end # OutputHelpers
   end # Helpers
 end # Padrino
+
+# Make slim works with sinatra/padrino
+Slim::Engine.set_default_options :buffer => '@_out_buf', :auto_escape => false if defined?(Slim)
