@@ -47,7 +47,7 @@ module Padrino
         options["accept-charset"] ||= "UTF-8"
         inner_form_html  = hidden_form_method_field(desired_method)
         inner_form_html += capture_html(&block)
-        concat content_tag('form', inner_form_html, options)
+        concat content_tag(:form, inner_form_html, options)
       end
 
       ##
@@ -77,7 +77,7 @@ module Padrino
         legend_text = args[0].is_a?(String) ? args.first : nil
         legend_html = legend_text.blank? ? '' : content_tag(:legend, legend_text)
         field_set_content = legend_html + capture_html(&block)
-        concat content_tag('fieldset', field_set_content, options)
+        concat content_tag(:fieldset, field_set_content, options)
       end
 
       ##

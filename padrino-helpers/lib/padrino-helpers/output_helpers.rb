@@ -1,6 +1,16 @@
 module Padrino
   module Helpers
     module OutputHelpers
+      ##
+      # Set the method to capture html
+      #
+      # ==== Examples:
+      #
+      #   engine[:erubis] = "<%= yield(*args) %>"
+      #   engine[:erb]    = "<% yield(*args) %>"
+      #   engine[:slim]   = "== yield(*args)"
+      #   engine[:haml]   = "!= capture_haml(*args, &block)"
+      #
       def self.engine
         @_engine ||= {}
       end
@@ -18,8 +28,18 @@ module Padrino
       #   capture_html(&block) => "...html..."
       #
       def capture(*args, &block)
+        # We use the sinatra render method to capture blocks.
+        #
+        #  Is something like:
+        #
+        #   render :erb, "<% yield %>" do
+        #     <h1>I a block</h1>
+        #
         eval '_buf, @_buf_was = "", _buf if defined?(_buf)', block.binding
         render(@current_engine, Padrino::Helpers::OutputHelpers.engine[@current_engine], { :layout => false }, :args => args, :block => block, &block)
+      rescue NoMethodError
+        # Invoking the block directly if we are not inside a sinatra/padrino application
+        block.call(*args)
       ensure
         eval '_buf = @_buf_was if defined?(_buf)', block.binding
       end
@@ -36,10 +56,9 @@ module Padrino
         case @current_engine
           when :haml                then haml_concat(content)
           when :erb, :erubis, :slim then @_out_buf << content
-          else content
         end
       end
-      alias :concat_html :concat
+      alias :concat_html    :concat
       alias :concat_content :concat
 
       ##
@@ -89,8 +108,9 @@ module Padrino
         # or if we are in a padrino application we use that.
         #
         def render(engine, *)
-          @current_engine = engine # Sinatra use this render :haml, padrino use their custom current_engine.
+          @current_engine = engine # Sinatra use this: render :haml, but padrino can use this: render "/form/mine"
           super
+          # So, now if we are under padrino @current_engine is overwritten from our custom render method
         end
     end # OutputHelpers
   end # Helpers

@@ -36,6 +36,10 @@ class TestTagHelpers < Test::Unit::TestCase
       actual_html = content_tag(:p, "Demo", :class => 'large', :id => 'thing')
       assert_has_tag('p.large#thing', :content => "Demo") { actual_html }
     end
+    should "support tags with content as block" do
+      actual_html = content_tag(:p, :class => 'large', :id => 'star') { "Demo" }
+      assert_has_tag('p.large#star', :content => "Demo") { actual_html }
+    end
     should "support tags with erb" do
       visit '/erb/content_tag'
       assert_have_selector :p, :content => "Test 1", :class => 'test', :id => 'test1'
