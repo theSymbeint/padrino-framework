@@ -47,7 +47,7 @@ module Padrino
       app  = options[:to]
 
       raise ArgumentError, "paths need to start with /" if path[0] != ?/
-      raise ArgumentError, "app is required" if app.nil?
+      raise ArgumentError, "app is required"            if app.nil?
 
       path  = path.chomp('/')
       match = Regexp.new("^#{Regexp.quote(path).gsub('/', '/+')}(.*)", nil, 'n')

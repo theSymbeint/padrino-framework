@@ -15,20 +15,25 @@ module Padrino
         @_exclude ||= %w(test spec tmp features config public db)
       end
 
-      def enabled=(value)
-        @_enabled = value
-      end
-
       def enabled
         @_enabled ||= Kernel.respond_to?(:fork) && Padrino.env == :development
       end
       alias :enabled? :enabled
 
+      def enable!
+        @_enable = true
+      end
+
+      def disable!
+        @_enable = false
+      end
+
+      def pids
+        @_pids ||= []
+      end
+
       def start!
-        unless enabled?
-          puts "<= Reloader is not enabled in #{Padrino.env} environment, or your ruby version dosn't support forking"
-          return
-        end
+        show_message and return unless enabled?
 
         loop do
           pid = fork
@@ -36,39 +41,45 @@ module Padrino
           # If we don't have the pid we are not in the child process.
           break unless pid
 
-          # Add some traps to our worker
+          pids << pid
+
           trap(:INT) do
-            begin
-              Process.kill(:KILL, pid)
-            rescue SystemCallError
+            if @_exiting
+              puts "\n<= Padrino has ended his set (crowd applauds)"
+              exit(0)
+            else
+              Process.kill(5, pid) rescue exit(0)
             end
-            # Process.waitall
           end
 
-          trap(:HUP) { Process.kill(:HUP, pid) }
-
           loop do
+            ##
             # Waits for a child process to exit. Process::WNOHANG: do not block if no child available
             # Process::WNOHANG flag is not available on all platforms
+            #
             begin
               p, status = Process.wait2(pid, Process::WNOHANG)
-              status.exitstatus == 180 ? break : exit(status) if status
+              if status && (status.termsig == 5 || status.exitstatus == 5)
+                puts "\n<= Reloading ... or press CTRL+C to EXIT"
+                @_exiting = true
+                sleep 1.5
+                @_exiting = false
+                break
+              end
             rescue Errno::ECHILD
             end
           end
         end
-
-        # Some traps to our worker
-        trap(:ABRT) { exit(0) }
-        trap(:HUP)  { reload! }
       end
 
       def reload!
-        unless enabled?
-          puts "<= Reloader is not enabled in #{Padrino.env} environment, or your ruby version dosn't support forking"
-          return
-        end
-        exit(180)
+        show_message and return unless enabled?
+        @_running = true
+        exit(5) # Singal TRAP
+      end
+
+      def running?
+        pids.present?
       end
 
       def watch!
@@ -79,12 +90,12 @@ module Padrino
             Dir[Padrino.root("**/*.rb")].each do |file|
               file = File.expand_path(file)
               if MTIMES[file].blank?
-                next if exclude.any? { |e| file =~ /^#{Padrino.root(e)}/ }
-                logger.debug "Detected new file #{file}"
+                next if exclude.any? { |e| file =~ /^#{Regexp.quote(Padrino.root(e))}/ }
+                logger.info "Detected new file #{file}"
                 Padrino.require_dependencies(file)
                 reload!
               elsif MTIMES[file] < File.mtime(file)
-                logger.debug "Reloading app because #{file} changed"
+                logger.info "Reloading app because #{file} changed"
                 reload!
               end
             end
@@ -93,6 +104,11 @@ module Padrino
           Thread.exit
         end
       end
+
+      private
+        def show_message
+          logger.info "Reloader is not enabled in #{Padrino.env} environment, or your ruby version dosn't support forking"
+        end
     end # self
   end # Reloader
 end # Padrino

@@ -12,7 +12,7 @@ module Padrino
     #
     def before_load(&block)
       @_before_load ||= []
-      @_before_load << Proc.new(&block) if block_given?
+      @_before_load << block if block_given?
       @_before_load
     end
 
@@ -28,7 +28,7 @@ module Padrino
     #
     def after_load(&block)
       @_after_load ||= []
-      @_after_load << Proc.new(&block) if block_given?
+      @_after_load << block if block_given?
       @_after_load
     end
 
@@ -53,7 +53,7 @@ module Padrino
     #
     def reload!
       before_load.each { |bl| bl.call } # Run before hooks
-      Reloader.reload!                  # Reload the app
+      Padrino::Reloader.reload!         # Reload the app
       after_load.each { |al| al.call }  # Run after hooks
     end
 

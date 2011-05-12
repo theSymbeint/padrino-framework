@@ -6,7 +6,6 @@ PADRINO_ROOT = File.dirname(__FILE__) unless defined? PADRINO_ROOT
 #
 
 class SimpleDemo < Padrino::Application
-  set :reload, true
   before { true }
   after  { true }
   error(404) { "404" }
