@@ -58,7 +58,7 @@ class TestAdminAppGenerator < Test::Unit::TestCase
       assert_match_in_file 'Padrino.mount("Admin").to("/admin")', "#{@apptmp}/sample_project/config/apps.rb"
       assert_match_in_file 'class Admin < Padrino::Application', "#{@apptmp}/sample_project/admin/app.rb"
       assert_match_in_file 'role.project_module :accounts, "/accounts"', "#{@apptmp}/sample_project/admin/app.rb"
-      assert_match_in_file 'set :session_secret, "', "#{@apptmp}/sample_project/admin/app.rb"
+      assert_match_in_file 'button_to pat(:logout)', "#{@apptmp}/sample_project/admin/views/layouts/application.haml"
     end
 
     should 'correctly generate a new padrino admin application with erb renderer' do
@@ -90,11 +90,11 @@ class TestAdminAppGenerator < Test::Unit::TestCase
       assert_match_in_file 'Padrino.mount("Admin").to("/admin")', "#{@apptmp}/sample_project/config/apps.rb"
       assert_match_in_file 'class Admin < Padrino::Application', "#{@apptmp}/sample_project/admin/app.rb"
       assert_match_in_file 'role.project_module :accounts, "/accounts"', "#{@apptmp}/sample_project/admin/app.rb"
-      assert_match_in_file 'set :session_secret, "', "#{@apptmp}/sample_project/admin/app.rb"
+      assert_match_in_file 'button_to pat(:logout)', "#{@apptmp}/sample_project/admin/views/layouts/application.erb"
     end
 
-    should 'correctly generate a new padrino admin application with erubis renderer' do
-      assert_nothing_raised { silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '-d=activerecord', '-e=erubis') } }
+    should 'correctly generate a new padrino admin application with slim renderer' do
+      assert_nothing_raised { silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '-d=activerecord', '-e=slim') } }
       assert_nothing_raised { silence_logger { generate(:admin_app, "--root=#{@apptmp}/sample_project") } }
       assert_file_exists("#{@apptmp}/sample_project")
       assert_file_exists("#{@apptmp}/sample_project/admin")
@@ -104,16 +104,16 @@ class TestAdminAppGenerator < Test::Unit::TestCase
       assert_file_exists("#{@apptmp}/sample_project/admin/controllers/base.rb")
       assert_file_exists("#{@apptmp}/sample_project/admin/controllers/sessions.rb")
       assert_file_exists("#{@apptmp}/sample_project/admin/views")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/accounts/_form.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/accounts/edit.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/accounts/index.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/accounts/new.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/base/index.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/sessions/new.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/base/_sidebar.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/base/index.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/layouts/application.erubis")
-      assert_file_exists("#{@apptmp}/sample_project/admin/views/sessions/new.erubis")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/accounts/_form.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/accounts/edit.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/accounts/index.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/accounts/new.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/base/index.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/sessions/new.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/base/_sidebar.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/base/index.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/layouts/application.slim")
+      assert_file_exists("#{@apptmp}/sample_project/admin/views/sessions/new.slim")
       assert_file_exists("#{@apptmp}/sample_project/public/admin")
       assert_file_exists("#{@apptmp}/sample_project/public/admin/stylesheets")
       assert_file_exists("#{@apptmp}/sample_project/app/models/account.rb")
@@ -122,7 +122,7 @@ class TestAdminAppGenerator < Test::Unit::TestCase
       assert_match_in_file 'Padrino.mount("Admin").to("/admin")', "#{@apptmp}/sample_project/config/apps.rb"
       assert_match_in_file 'class Admin < Padrino::Application', "#{@apptmp}/sample_project/admin/app.rb"
       assert_match_in_file 'role.project_module :accounts, "/accounts"', "#{@apptmp}/sample_project/admin/app.rb"
-      assert_match_in_file 'set :session_secret, "', "#{@apptmp}/sample_project/admin/app.rb"
+      assert_match_in_file 'button_to pat(:logout)', "#{@apptmp}/sample_project/admin/views/layouts/application.slim"
     end
 
     should 'not conflict with existing seeds file' do
@@ -142,6 +142,13 @@ class TestAdminAppGenerator < Test::Unit::TestCase
 
       assert_match_in_file '# Old Seeds Content', "#{@apptmp}/sample_project/db/seeds.rb"
       assert_match_in_file 'Account.create(', "#{@apptmp}/sample_project/db/seeds.rb"
+    end
+
+    should "navigate completely inside an app with activerecord" do
+      silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", "-d=activerecord", "-e=haml", "--dev") }
+      silence_logger { generate(:admin_app, "--root=#{@apptmp}/sample_project") }
+      # bundle(:install, :gemfile => "#{@apptmp}/sample_project/Gemfile", :path => "#{@apptmp}/bundle")
+      # cli(:rake, '-T', "-c=#{@apptmp}/sample_project")
     end
   end
 end

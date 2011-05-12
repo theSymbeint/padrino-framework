@@ -23,8 +23,12 @@ module Padrino
         Padrino::Cli::Adapter.start(options)
       end
 
+      desc "s", "Starts the Padrino application"
+      alias :s :start
+
       desc "stop", "Stops the Padrino application"
       def stop
+        prepare :stop
         require File.expand_path(File.dirname(__FILE__) + "/adapter")
         Padrino::Cli::Adapter.stop
       end

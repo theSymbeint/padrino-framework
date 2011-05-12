@@ -1,4 +1,5 @@
 require 'padrino-core/version'
+require 'securerandom' unless defined?(SecureRandom)
 
 module Padrino
   module Generators
@@ -34,7 +35,7 @@ module Padrino
       component_option :test,       "testing framework",  :aliases => '-t', :choices => [:rspec, :shoulda, :cucumber, :bacon, :testspec, :riot], :default => :none
       component_option :mock,       "mocking library",    :aliases => '-m', :choices => [:mocha, :rr], :default => :none
       component_option :script,     "javascript library", :aliases => '-s', :choices => [:jquery, :prototype, :rightjs, :mootools, :extcore, :dojo], :default => :none
-      component_option :renderer,   "template engine",    :aliases => '-e', :choices => [:haml, :erb, :erubis, :liquid, :slim], :default => :haml
+      component_option :renderer,   "template engine",    :aliases => '-e', :choices => [:haml, :erb, :liquid, :slim], :default => :haml
       component_option :stylesheet, "stylesheet engine",  :aliases => '-c', :choices => [:less, :sass, :compass, :scss], :default => :none
 
       # Show help if no argv given
@@ -53,8 +54,8 @@ module Padrino
           empty_directory destination_root("public/javascripts")
           empty_directory destination_root("public/stylesheets")
           empty_directory destination_root("tmp")
-          app_skeleton('app', options[:tiny])
           store_component_config('.components')
+          app_skeleton('app', options[:tiny])
           template "templates/Gemfile.tt", destination_root("Gemfile")
         end
       end
@@ -103,7 +104,6 @@ module Padrino
         end
         say(text)
       end
-
     end # Project
   end # Generators
 end # Padrino

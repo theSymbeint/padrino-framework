@@ -72,12 +72,6 @@ module Padrino
         end
       end
 
-      def reload!
-        show_message and return unless enabled?
-        @_running = true
-        exit(5) # Singal TRAP
-      end
-
       def running?
         pids.present?
       end

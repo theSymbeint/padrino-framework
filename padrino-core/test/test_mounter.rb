@@ -3,7 +3,12 @@ require File.expand_path(File.dirname(__FILE__) + '/helper')
 class TestMounter < Test::Unit::TestCase
 
   def setup
+    $VERBOSE, @_verbose_was = nil, $VERBOSE
     Padrino.mounted_apps.clear
+  end
+
+  def teardown
+    $VERBOSE = @_verbose_was
   end
 
   context 'for mounter functionality' do
@@ -38,7 +43,7 @@ class TestMounter < Test::Unit::TestCase
       assert_equal AnApp, Padrino.mounted_apps.first.app_obj
       assert_equal ["an_app"], Padrino.mounted_apps.map(&:name)
     end
-    
+
     should 'correctly mount an app in a namespace' do
       module ::SomeNamespace
         class AnApp < Padrino::Application; end

@@ -84,7 +84,7 @@ class Test::Unit::TestCase
     project_root = options[:root]
     project_name = options[:name]
     settings = options.slice!(:name, :root)
-    components = settings.map { |component, value| "--#{component}=#{value}" }
+    components = settings.sort_by { |k, v| k.to_s }.map { |component, value| "--#{component}=#{value}" }
     params = [project_name, *components].push("-r=#{project_root}")
     Padrino.expects(:bin_gen).with(*params.unshift('project')).returns(true)
   end
@@ -120,16 +120,15 @@ class Test::Unit::TestCase
 
   # expects_git :commit, "hello world"
   def expects_git(command,options={})
-    #options.reverse_merge!(:root => '/tmp')
     FileUtils.mkdir_p(options[:root])
-      if command.to_s == 'init'
-        args = options[:arguments] || options[:root]
-        ::Grit::Repo.expects(:init).with(args).returns(true)
-      else
-        base = ::Grit::Git.new(options[:root])
-        ::Grit::Repo.stubs(:new).with(options[:root]).returns(base)
-        ::Grit::Git.any_instance.expects(command.to_sym).with(options[:arguments]).returns(true)
-      end
+    if command.to_s == 'init'
+      args = options[:arguments] || options[:root]
+      ::Grit::Repo.expects(:init).with(args).returns(true)
+    else
+      base = ::Grit::Git.new(options[:root])
+      ::Grit::Repo.stubs(:new).with(options[:root]).returns(base)
+      ::Grit::Git.any_instance.expects(command.to_sym).with(options[:arguments]).returns(true)
+    end
   end
 
 end

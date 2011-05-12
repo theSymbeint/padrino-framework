@@ -29,8 +29,12 @@ class TestProjectGenerator < Test::Unit::TestCase
     should "generate a valid name" do
       silence_logger { generate(:project, 'project.com', "--root=#{@apptmp}") }
       assert_file_exists("#{@apptmp}/project.com")
-      assert_match_in_file(/class ProjectCom < Padrino::Application/,"#{@apptmp}/project.com/app/app.rb")
-      assert_match_in_file(/Padrino.mount\("ProjectCom"\).to\('\/'\)/,"#{@apptmp}/project.com/config/apps.rb")
+      assert_match_in_file(/class ProjectCom < Padrino::Application/,  "#{@apptmp}/project.com/app/app.rb")
+      assert_match_in_file(/Padrino.mount\("ProjectCom"\).to\('\/'\)/, "#{@apptmp}/project.com/config/apps.rb")
+      silence_logger { generate(:app, 'ws-dci-2011', "--root=#{@apptmp}/project.com") }
+      assert_file_exists("#{@apptmp}/project.com/wsdci2011")
+      assert_match_in_file(/class WsDci2011 < Padrino::Application/,  "#{@apptmp}/project.com/wsdci2011/app.rb")
+      assert_match_in_file(/Padrino.mount\("WsDci2011"\).to\("\/wsdci2011"\)/, "#{@apptmp}/project.com/config/apps.rb")
     end
 
     should "raise an Error when given invalid constant names" do
@@ -43,7 +47,6 @@ class TestProjectGenerator < Test::Unit::TestCase
       assert_file_exists("/tmp/project")
       assert_match(/cd \/tmp\/project/, buffer)
     end
-
 
     should "allow specifying alternate application name" do
       assert_nothing_raised { silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--app=base_app') } }
@@ -85,6 +88,11 @@ class TestProjectGenerator < Test::Unit::TestCase
       silence_logger { generate(:project, 'warepedia', "--root=#{@apptmp}", '--script=none') }
       assert_match_in_file(/class Warepedia < Padrino::Application/m, "#{@apptmp}/warepedia/app/app.rb")
       assert_match_in_file(/Padrino.mount\("Warepedia"\).to\('\/'\)/m, "#{@apptmp}/warepedia/config/apps.rb")
+    end
+
+    should "store and apply session_secret" do
+      silence_logger { generate(:project,'sample_project', '--tiny',"--root=#{@apptmp}") }
+      assert_match_in_file(/set :session_secret, '[0-9A-z]*'/, "#{@apptmp}/sample_project/config/apps.rb")
     end
 
     should "create components file containing options chosen with defaults" do
@@ -166,7 +174,7 @@ class TestProjectGenerator < Test::Unit::TestCase
         buffer = silence_logger { generate(:project, 'project.com', "--root=#{@apptmp}", '--orm=sequel', '--script=none') }
         assert_match(/Applying.*?sequel.*?orm/, buffer)
         assert_match_in_file(/gem 'sequel'/, "#{@apptmp}/project.com/Gemfile")
-        assert_match_in_file(/gem 'sqlite3-ruby'/, "#{@apptmp}/project.com/Gemfile")
+        assert_match_in_file(/gem 'sqlite3'/, "#{@apptmp}/project.com/Gemfile")
         assert_match_in_file(/Sequel.connect/, "#{@apptmp}/project.com/config/database.rb")
         assert_match_in_file(%r{sqlite://}, "#{@apptmp}/project.com/config/database.rb")
         assert_match_in_file(%r{project_com}, "#{@apptmp}/project.com/config/database.rb")
@@ -182,7 +190,7 @@ class TestProjectGenerator < Test::Unit::TestCase
 
       should "properly generate sqlite3" do
         buffer = silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--orm=sequel', '--adapter=sqlite') }
-        assert_match_in_file(/gem 'sqlite3-ruby'/, "#{@apptmp}/sample_project/Gemfile")
+        assert_match_in_file(/gem 'sqlite3'/, "#{@apptmp}/sample_project/Gemfile")
         assert_match_in_file(%r{sqlite://}, "#{@apptmp}/sample_project/config/database.rb")
         assert_match_in_file(/sample_project_development/, "#{@apptmp}/sample_project/config/database.rb")
       end
@@ -200,7 +208,7 @@ class TestProjectGenerator < Test::Unit::TestCase
         buffer = silence_logger { generate(:project, 'project.com', "--root=#{@apptmp}", '--orm=activerecord', '--script=none') }
         assert_match(/Applying.*?activerecord.*?orm/, buffer)
         assert_match_in_file(/gem 'activerecord', :require => "active_record"/, "#{@apptmp}/project.com/Gemfile")
-        assert_match_in_file(/gem 'sqlite3-ruby', :require => "sqlite3"/, "#{@apptmp}/project.com/Gemfile")
+        assert_match_in_file(/gem 'sqlite3'/, "#{@apptmp}/project.com/Gemfile")
         assert_match_in_file(/ActiveRecord::Base.establish_connection/, "#{@apptmp}/project.com/config/database.rb")
         assert_match_in_file(/project_com/, "#{@apptmp}/project.com/config/database.rb")
         assert_dir_exists("#{@apptmp}/project.com/app/models")
@@ -222,7 +230,7 @@ class TestProjectGenerator < Test::Unit::TestCase
 
       should "properly generate sqlite3" do
         buffer = silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--orm=activerecord', '--adapter=sqlite3') }
-        assert_match_in_file(/gem 'sqlite3-ruby', :require => "sqlite3"/, "#{@apptmp}/sample_project/Gemfile")
+        assert_match_in_file(/gem 'sqlite3'/, "#{@apptmp}/sample_project/Gemfile")
         assert_match_in_file(/sample_project_development.db/, "#{@apptmp}/sample_project/config/database.rb")
         assert_match_in_file(%r{:adapter => 'sqlite3'}, "#{@apptmp}/sample_project/config/database.rb")
       end
@@ -291,7 +299,7 @@ class TestProjectGenerator < Test::Unit::TestCase
     should "properly generate for couchrest" do
       buffer = silence_logger { generate(:project, 'project.com', "--root=#{@apptmp}", '--orm=couchrest', '--script=none') }
       assert_match(/Applying.*?couchrest.*?orm/, buffer)
-      assert_match_in_file(/gem 'couchrest'/, "#{@apptmp}/project.com/Gemfile")
+      assert_match_in_file(/gem 'couchrest_model'/, "#{@apptmp}/project.com/Gemfile")
       assert_match_in_file(/CouchRest.database!/, "#{@apptmp}/project.com/config/database.rb")
       assert_match_in_file(/project_com/, "#{@apptmp}/project.com/config/database.rb")
       assert_dir_exists("#{@apptmp}/project.com/app/models")
@@ -322,18 +330,13 @@ class TestProjectGenerator < Test::Unit::TestCase
     should "properly generate for erb" do
       buffer = silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--renderer=erb', '--script=none') }
       assert_match(/Applying.*?erb.*?renderer/, buffer)
+      assert_match_in_file(/gem 'erubis'/, "#{@apptmp}/sample_project/Gemfile")
     end
 
     should "properly generate for haml" do
       buffer = silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--renderer=haml','--script=none') }
       assert_match(/Applying.*?haml.*?renderer/, buffer)
       assert_match_in_file(/gem 'haml'/, "#{@apptmp}/sample_project/Gemfile")
-    end
-
-    should "properly generate for erubis" do
-      buffer = silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--renderer=erubis','--script=none') }
-      assert_match(/Applying.*?erubis.*?renderer/,buffer)
-      assert_match_in_file(/gem 'erubis'/, "#{@apptmp}/sample_project/Gemfile")
     end
 
     should "properly generate for liquid" do
@@ -346,8 +349,6 @@ class TestProjectGenerator < Test::Unit::TestCase
       buffer = silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--renderer=slim','--script=none') }
       assert_match(/Applying.*?slim.*?renderer/,buffer)
       assert_match_in_file(/gem 'slim'/, "#{@apptmp}/sample_project/Gemfile")
-      assert_match_in_file(/Slim::Engine\.set_default_options/m, "#{@apptmp}/sample_project/lib/slim_init.rb")
-      assert_match_in_file(/register SlimInitializer/m, "#{@apptmp}/sample_project/app/app.rb")
     end
   end
 
@@ -413,6 +414,8 @@ class TestProjectGenerator < Test::Unit::TestCase
       assert_match_in_file(/PADRINO_ENV = 'test' unless defined\?\(PADRINO_ENV\)/, "#{@apptmp}/sample_project/test/test_config.rb")
       assert_match_in_file(/Bacon::Context/, "#{@apptmp}/sample_project/test/test_config.rb")
       assert_file_exists("#{@apptmp}/sample_project/test/test.rake")
+      assert_match_in_file(/Rake::TestTask.new\("test:\#/,"#{@apptmp}/sample_project/test/test.rake")
+      assert_match_in_file(/task 'test' => test_tasks/,"#{@apptmp}/sample_project/test/test.rake")
     end
 
     should "properly generate for riot" do
@@ -428,6 +431,8 @@ class TestProjectGenerator < Test::Unit::TestCase
       assert_match_in_file(/Riot::Context/, "#{@apptmp}/sample_project/test/test_config.rb")
       assert_match_in_file(/SampleProject\.tap/, "#{@apptmp}/sample_project/test/test_config.rb")
       assert_file_exists("#{@apptmp}/sample_project/test/test.rake")
+      assert_match_in_file(/Rake::TestTask\.new\("test:\#/,"#{@apptmp}/sample_project/test/test.rake")
+      assert_match_in_file(/task 'test' => test_tasks/,"#{@apptmp}/sample_project/test/test.rake")
     end
 
     should "properly generate for rspec" do
@@ -440,6 +445,8 @@ class TestProjectGenerator < Test::Unit::TestCase
       assert_match_in_file(/PADRINO_ENV = 'test' unless defined\?\(PADRINO_ENV\)/, "#{@apptmp}/sample_project/spec/spec_helper.rb")
       assert_match_in_file(/RSpec.configure/, "#{@apptmp}/sample_project/spec/spec_helper.rb")
       assert_file_exists("#{@apptmp}/sample_project/spec/spec.rake")
+      assert_match_in_file(/RSpec::Core::RakeTask\.new\("spec:\#/,"#{@apptmp}/sample_project/spec/spec.rake")
+      assert_match_in_file(/task 'spec' => spec_tasks/,"#{@apptmp}/sample_project/spec/spec.rake")
     end
 
     should "properly generate for shoulda" do
@@ -452,6 +459,8 @@ class TestProjectGenerator < Test::Unit::TestCase
       assert_match_in_file(/PADRINO_ENV = 'test' unless defined\?\(PADRINO_ENV\)/, "#{@apptmp}/sample_project/test/test_config.rb")
       assert_match_in_file(/Test::Unit::TestCase/, "#{@apptmp}/sample_project/test/test_config.rb")
       assert_file_exists("#{@apptmp}/sample_project/test/test.rake")
+      assert_match_in_file(/Rake::TestTask\.new\("test:\#/,"#{@apptmp}/sample_project/test/test.rake")
+      assert_match_in_file(/task 'test' => test_tasks/,"#{@apptmp}/sample_project/test/test.rake")
     end
 
     should "properly generate for testspec" do
@@ -464,6 +473,8 @@ class TestProjectGenerator < Test::Unit::TestCase
       assert_match_in_file(/PADRINO_ENV = 'test' unless defined\?\(PADRINO_ENV\)/, "#{@apptmp}/sample_project/test/test_config.rb")
       assert_match_in_file(/Test::Unit::TestCase/, "#{@apptmp}/sample_project/test/test_config.rb")
       assert_file_exists("#{@apptmp}/sample_project/test/test.rake")
+      assert_match_in_file(/Rake::TestTask\.new\("test:\#/,"#{@apptmp}/sample_project/test/test.rake")
+      assert_match_in_file(/task 'test' => test_tasks/,"#{@apptmp}/sample_project/test/test.rake")
     end
 
     should "properly generate for cucumber" do
@@ -481,6 +492,8 @@ class TestProjectGenerator < Test::Unit::TestCase
       assert_match_in_file(/Capybara.app = /, "#{@apptmp}/sample_project/features/support/env.rb")
       assert_match_in_file(/World\(Cucumber::Web::URLs\)/, "#{@apptmp}/sample_project/features/support/url.rb")
       assert_file_exists("#{@apptmp}/sample_project/spec/spec.rake")
+      assert_match_in_file(/RSpec::Core::RakeTask\.new\("spec:\#/,"#{@apptmp}/sample_project/spec/spec.rake")
+      assert_match_in_file(/task 'spec' => spec_tasks/,"#{@apptmp}/sample_project/spec/spec.rake")
       assert_file_exists("#{@apptmp}/sample_project/features/support/env.rb")
       assert_file_exists("#{@apptmp}/sample_project/features/add.feature")
       assert_file_exists("#{@apptmp}/sample_project/features/step_definitions/add_steps.rb")
@@ -490,7 +503,7 @@ class TestProjectGenerator < Test::Unit::TestCase
   context "the generator for stylesheet component" do
     should "properly generate for sass" do
       buffer = silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--renderer=haml','--script=none','--stylesheet=sass') }
-      assert_match_in_file(/gem 'haml'/, "#{@apptmp}/sample_project/Gemfile")
+      assert_match_in_file(/gem 'sass'/, "#{@apptmp}/sample_project/Gemfile")
       assert_match_in_file(/module SassInitializer.*Sass::Plugin::Rack/m, "#{@apptmp}/sample_project/lib/sass_init.rb")
       assert_match_in_file(/register SassInitializer/m, "#{@apptmp}/sample_project/app/app.rb")
       assert_dir_exists("#{@apptmp}/sample_project/app/stylesheets")
@@ -524,6 +537,5 @@ class TestProjectGenerator < Test::Unit::TestCase
       assert_match_in_file(/register ScssInitializer/m, "#{@apptmp}/sample_project/app/app.rb")
       assert_dir_exists("#{@apptmp}/sample_project/app/stylesheets")
     end
-
   end
 end

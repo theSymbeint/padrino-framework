@@ -106,7 +106,7 @@ class TestRouting < Test::Unit::TestCase
     assert_equal ["POST"], app.routes[2].as_options[:conditions][:request_method]
   end
 
-  should 'generate basic urls'do
+  should 'generate basic urls' do
     mock_app do
       get(:foo){ "/foo" }
       get(:foo, :with => :id){ |id| "/foo/#{id}" }
@@ -228,6 +228,22 @@ class TestRouting < Test::Unit::TestCase
 
     get '/foo', {}, { 'HTTP_ACCEPT' => '*/*;q=0.5' }
     assert_equal 'json', body
+  end
+
+  should "send the appropriate number of params" do
+    mock_app do
+      get('/id/:user_id', :provides => [:json]) { |user_id| user_id}
+    end
+    get '/id/5.json'
+    assert_equal '5', body
+  end
+
+  should "allow .'s in param values" do
+    mock_app do
+      get('/id/:email', :provides => [:json]) { |email, format| [email, format] * '/' }
+    end
+    get '/id/foo@bar.com.json'
+    assert_equal 'foo@bar.com/json', body
   end
 
   should "set correct content_type for Accept not equal to */* even if */* also provided" do
@@ -1339,7 +1355,7 @@ class TestRouting < Test::Unit::TestCase
     mock_app { set :environment, :development }
     get "/"
     assert_equal 404, status
-    assert_match /Sinatra doesn\'t know this ditty./, body
+    assert_match /Sinatra doesn&rsquo;t know this ditty./, body
   end
 
   should 'render a custom NotFound page' do
@@ -1358,5 +1374,45 @@ class TestRouting < Test::Unit::TestCase
     get "/"
     assert_equal 404, status
     assert_match /not found/, body
+  end
+
+  should 'recognize paths' do
+    mock_app do
+      controller :foo do
+        get(:bar, :map => "/my/:id/custom-route") { }
+      end
+      get(:simple, :map => "/simple/:id") { }
+      get(:with_format, :with => :id, :provides => :js) { }
+    end
+    assert_equal [:foo_bar, { :id => "fantastic" }], @app.recognize_path(@app.url(:foo, :bar, :id => :fantastic))
+    assert_equal [:foo_bar, { :id => "18" }], @app.recognize_path(@app.url(:foo, :bar, :id => 18))
+    assert_equal [:simple, { :id => "bar" }], @app.recognize_path(@app.url(:simple, :id => "bar"))
+    assert_equal [:simple, { :id => "true" }], @app.recognize_path(@app.url(:simple, :id => true))
+    assert_equal [:simple, { :id => "9" }], @app.recognize_path(@app.url(:simple, :id => 9))
+    assert_equal [:with_format, { :id => "bar", :format => "js" }], @app.recognize_path(@app.url(:with_format, :id => "bar", :format => :js))
+    assert_equal [:with_format, { :id => "true", :format => "js" }], @app.recognize_path(@app.url(:with_format, :id => true, :format => "js"))
+    assert_equal [:with_format, { :id => "9", :format => "js" }], @app.recognize_path(@app.url(:with_format, :id => 9, :format => :js))
+  end
+
+  should 'have current_path' do
+    mock_app do
+      controller :foo do
+        get :bar, :map => "/paginate/:page" do
+          current_path
+        end
+      end
+    end
+    get @app.url(:foo, :bar, :page => 10)
+    assert_equal "/paginate/10", body
+  end
+
+  should 'change params in current_path' do
+    mock_app do
+      get :index, :map => "/paginate/:page" do
+        current_path(:page => 66)
+      end
+    end
+    get @app.url(:index, :page => 10)
+    assert_equal "/paginate/66", body
   end
 end

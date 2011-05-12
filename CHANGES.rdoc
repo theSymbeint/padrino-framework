@@ -1,6 +1,48 @@
 = CHANGES
 
-== 0.9.24 (Unreleased)
+== 0.9.28 (Not Yet Released)
+
+* Fixed couchrest Account Model
+* Generate SystemTimer for Mongoid only if Ruby 1.8 [Thanks to RoryO]
+* Generate SystemTimer for Mongomapper only if Ruby 1.8
+* Add `padrino s` as alias for `padrino start`
+* Fixed Gemfile for couchrest
+* Updated Gemfile for mongoid
+* Fix a possible loop in require_dependencies
+* Added padrino rake gen useful to create a Rakefile to handle for example with heroku
+
+== 0.9.27
+
+* Use sass gem, because now is separated from haml
+* Escape regex in our reloader
+* Use CouchRest::Model instead of CouchRest::ExtendedDocument [Thanks Burgestrand!]
+* Fixes issues with offline generation of js (from padrino-static)
+* Fixes YAML parsing bug by using syck
+* Use sinatra 1.2.5
+* Make logger sinatra 1.3 compat
+* Use new sqlite3 gem in generated projects
+* Removed padrino_logging and use instead simple logging to avoid conflicts
+* By default use logging only on development
+* Uses raise_errors, dump_errors, show_exceptions as Sinatra::Base do
+* Refactored Padrino::Application
+* Added a global configuration in config/apps.rb used by each Padrino Applicaitons
+* Moved session_secret in global configuration project
+* Use SecureRandom to generate session secret
+* Support 'partial' in Sinatra with explicit engine
+* Added recognize_path method ex: recognize_path(request.referrer) => [:controller_action, { :id => 1 }]
+* Added current_path method ex: current_path(:merge => :param) => "/current/1234/merge/param"
+* Support for jruby-memcache-client/memcache-client
+* Added MongoMapper task for drop database
+
+== 0.9.26
+
+* Padrino::Logger compatible with Rack::CommonLogger
+* Added session_path and ability to use custom Rack::Session::Cookie options
+* Fixed dependency loader
+* Fixed mounting sub-apps
+* Fixed shared sessions
+
+== 0.9.25
 
 * Fixes to allow flexible libraries in padrino-cache
 * Allow select tag to take a range of options [Thanks activestylus]
@@ -8,7 +50,7 @@
 * Use MongoMapper official gem
 * Fixes ERBHandler type detection
 * Fixes Routes with globs that when something is after the glob i.e. get :show, :map => '/pictures/*path.html'
-* Updated http_router to ~> 0.6.7
+* Updated http_router to ~> 0.7.0
 * Completed Padrino Cache Doc [Thanks to Onethirtyfive]
 * Added a global Padrino.cache option
 * Padrino-Cache now is able to store ruby objects
@@ -26,9 +68,6 @@
 * Changed layout of our logger
 * Logs for cache GET and SET
 * Caching instructions in main app template
-* Adds back Erubis support (once latest Tilt is released)
-* Adds back Erubis admin support
-* Fixes slim support (with slim initializer file)
 * Fixes NotFound Sinatra Errors
 * Require correct rspec/exceptions in cucumber.
 * Stylesheet_link_tag and javascript_include_tag should allow array inputs for sources (instead of argument array)
@@ -45,6 +84,24 @@
 * Update Sinatra to 1.2.3 and HttpRouter to 0.6.9
 * Added cache_key inside route for a simple/fast expiring caching
 * Updated plugin git command to use Grit instead
+* Removed ./bundle/environment stuff
+* Rubinius compat [Thx to Rakaur]
+* Fixed setting custom views path
+* Removed deprecated dom helpers
+* Completed support for Slim
+* Adds Slim admin support
+* Do not enforce rack sessions for Rack:Flash
+* Now erubis is the standard for the erb templates like in tilt/sinatra
+* Fix stop daemonized padrino from non standard path
+* Fix app path when generating sub-applications
+* Use sass gem because now is separated from haml
+* Allow combining different templates (ex: render a partial built with haml from a slim/erubis view)
+* Use sessions for uri_root
+* Fix padrino admin page title
+
+== 0.9.24
+
+* Delayed
 
 == 0.9.23
 

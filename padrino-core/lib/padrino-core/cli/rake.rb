@@ -1,5 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../tasks')
 require 'rake'
+require 'securerandom' unless defined?(SecureRandom)
 Rake.application.instance_variable_set(:@rakefile, __FILE__)
 
 module PadrinoTasks
@@ -30,7 +31,7 @@ end
 
 desc "Generate a secret key"
 task :secret do
-  shell.say '%x' % rand(2**255)
+  shell.say SecureRandom.hex(32)
 end
 
 # lists all routes of a given app
@@ -61,5 +62,18 @@ namespace :routes do
   task :app, :app, :needs => :environment do |t, args|
     app = Padrino.mounted_apps.find { |app| app.app_class == args.app }
     list_app_routes(app, args) if app
+  end
+end
+
+desc "Generate the Rakefile"
+task :gen do
+  File.open(Padrino.root("Rakefile"), "w") do |file|
+    file.puts <<-RUBY.gsub(/^ {6}/, '')
+      require File.dirname(__FILE__) + '/config/boot.rb'
+      require 'thor'
+      require 'padrino-core/cli/rake'
+
+      PadrinoTasks.init
+    RUBY
   end
 end

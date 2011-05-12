@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path("../lib/padrino-core/version.rb", __FILE__)
 
 Gem::Specification.new do |s|
@@ -8,17 +9,20 @@ Gem::Specification.new do |s|
   s.summary = "The required Padrino core gem"
   s.homepage = "http://www.padrinorb.com"
   s.description = "The Padrino core gem required for use of this framework"
-  s.default_executable = "padrino"
-  s.executables = ["padrino"]
   s.required_rubygems_version = ">= 1.3.6"
   s.version = Padrino.version
   s.date = Time.now.strftime("%Y-%m-%d")
+
   s.extra_rdoc_files = Dir["*.rdoc"]
-  s.files = %w(.document .gitignore LICENSE README.rdoc Rakefile padrino-core.gemspec) + Dir.glob("{bin,lib,test}/**/*")
-  s.rdoc_options = ["--charset=UTF-8"]
-  s.require_path = "lib"
-  s.add_dependency("sinatra", "~> 1.2.3")
-  s.add_dependency("http_router", "~> 0.6.9")
+  s.files         = `git ls-files`.split("\n")
+  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  s.require_paths = ["lib"]
+  s.rdoc_options  = ["--charset=UTF-8"]
+
+  s.add_dependency("tilt", "~> 1.3.0")
+  s.add_dependency("sinatra", "~> 1.2.6")
+  s.add_dependency("http_router", "~> 0.7.5")
   s.add_dependency("thor", ">=0.14.3")
   s.add_dependency("activesupport", ">= 3.0.0")
   s.add_dependency("tzinfo")

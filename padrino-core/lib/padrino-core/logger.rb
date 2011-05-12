@@ -68,7 +68,7 @@ module Padrino
     #
     # ==== Examples
     #
-    #   Padrino::Logger::Config[:development] = { :log_level => :debug, :to_file }
+    #   Padrino::Logger::Config[:development] = { :log_level => :debug, :stream => :to_file }
     #   # or you can edit our defaults
     #   Padrino::Logger::Config[:development][:log_level] = :error
     #   # or you can use your stream
@@ -215,6 +215,7 @@ module Padrino
       flush if @auto_flush
       message
     end
+    alias :write :<<
 
     ##
     # Generate the logging methods for Padrino.logger for each log level.
@@ -283,6 +284,7 @@ module Padrino
       end
 
       def call(env)
+        env['rack.logger'] = Padrino.logger
         began_at = Time.now
         status, header, body = @app.call(env)
         log(env, status, header, began_at)

@@ -28,9 +28,10 @@ class TestAppGenerator < Test::Unit::TestCase
       assert_file_exists("#{@apptmp}/sample_project/demo/views")
       assert_file_exists("#{@apptmp}/sample_project/demo/views/layouts")
       assert_dir_exists("#{@apptmp}/sample_project/public/demo")
-      assert_match_in_file 'Padrino.mount("Demo").to("/demo")', "#{@apptmp}/sample_project/config/apps.rb"
-      assert_match_in_file 'class Demo < Padrino::Application', "#{@apptmp}/sample_project/demo/app.rb"
-      assert_match_in_file 'set :session_secret, "', "#{@apptmp}/sample_project/demo/app.rb"
+      assert_match_in_file('Padrino.mount("Demo").to("/demo")', "#{@apptmp}/sample_project/config/apps.rb")
+      assert_match_in_file('class Demo < Padrino::Application', "#{@apptmp}/sample_project/demo/app.rb")
+      assert_match_in_file(/Padrino.configure_apps do/, "#{@apptmp}/sample_project/config/apps.rb")
+      assert_match_in_file(/set :session_secret, '[0-9A-z]*'/, "#{@apptmp}/sample_project/config/apps.rb")
     end
 
     should "generate tiny app skeleton" do
@@ -60,9 +61,9 @@ class TestAppGenerator < Test::Unit::TestCase
     should "correctly create a new mailer inside a padrino application" do
       silence_logger { generate(:project, 'sample_project', "--root=#{@apptmp}", '--script=none', '-t=bacon') }
       silence_logger { generate(:app, 'demo_app', "--root=#{@apptmp}/sample_project") }
-      silence_logger { generate(:mailer, 'demo', "-r=#{@apptmp}/sample_project", '-a=demo_app') }
-      assert_match_in_file(/DemoApp.mailer :demo/m, "#{@apptmp}/sample_project/demo_app/mailers/demo.rb")
-      assert_dir_exists("#{@apptmp}/sample_project/demo_app/views/mailers/demo")
+      silence_logger { generate(:mailer, 'demo', "-r=#{@apptmp}/sample_project", '-a=demoapp') }
+      assert_match_in_file(/DemoApp.mailer :demo/m, "#{@apptmp}/sample_project/demoapp/mailers/demo.rb")
+      assert_dir_exists("#{@apptmp}/sample_project/demoapp/views/mailers/demo")
     end
 
     # only destroys what it generated.

@@ -4,9 +4,7 @@ base_path = File.expand_path(File.dirname(__FILE__), __FILE__)
 
 source :rubygems
 
-group :other do
-  gem "builder", ">= 2.1.2"
-end
+# gem "sinatra", :git => "git://github.com/sinatra/sinatra.git"
 
 group :db do
   gem "dm-core", ">= 1.0"
@@ -23,11 +21,13 @@ group :development do
   gem "fakeweb",  ">=1.2.8"
   gem "webrat", "= 0.5.1"
   gem "haml", ">= 2.2.22"
-  gem "phocus"
+  gem "erubis", ">= 2.7.0"
+  gem "slim", ">= 0.9.2"
   gem "shoulda", ">= 2.10.3"
-  gem "redis", ">= 2.0.0"
   gem "uuid", ">= 2.3.1"
   gem "bcrypt-ruby", :require => "bcrypt"
+  gem "phocus"
+  gem "builder", ">= 2.1.2"
   platforms :mri_18 do
     gem "rcov", "~> 0.9.8"
     gem "ruby-prof", ">= 0.9.1"
@@ -36,9 +36,19 @@ group :development do
   platforms :mri_19 do
     gem "ruby-debug19"
   end
+  platforms :jruby do
+    gem "jruby-openssl"
+  end
+end
+
+group :cache do
+  gem "redis",     ">= 2.0.0"
   platforms :mri do
     gem "memcached", ">= 0.20.1"
     gem 'dalli',     ">=1.0.2"
+  end
+  platform :jruby do
+    gem "jruby-memcache-client"
   end
 end
 

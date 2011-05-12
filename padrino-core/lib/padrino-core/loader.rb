@@ -98,15 +98,16 @@ module Padrino
       files = paths.map { |path| Dir[path] }.flatten.uniq.sort
 
       while files.present?
-        # We need a size to make sure things are loading
-        size_at_start = files.size
-
         # List of errors and failed files
         errors, failed = [], []
 
-        # Now we try to require our dependencies
-        files.each do |file|
-          file = File.expand_path(file)
+        # We need a size to make sure things are loading
+        size_at_start = files.size
+
+        # Now we try to require our dependencies, we dup files
+        # so we don't perform delete on the original array during
+        # iteration, this prevent problems with rubinus
+        files.dup.each do |file|
           begin
             require file
             Padrino::Reloader::MTIMES[file] = File.mtime(file)

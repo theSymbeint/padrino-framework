@@ -88,6 +88,8 @@ module Padrino
     end
 
     module InstanceMethods
+      attr_reader :current_engine
+
       def content_type(type=nil, params={}) #:nodoc:
         type.nil? ? @_content_type : super(type, params)
       end
@@ -108,7 +110,10 @@ module Padrino
           # If engine is a hash then render data converted to json
           return engine.to_json if engine.is_a?(Hash)
 
-          # Data can actually be a hash of options in certain cases
+          # If engine is nil, ignore engine parameter
+          engine, data = data, options if engine.nil? && data
+
+          # Data can actually be a hash of options in certain render cases
           options.merge!(data) && data = nil if data.is_a?(Hash)
 
           # If an engine is a string then this is a likely a path to be resolved
@@ -129,8 +134,15 @@ module Padrino
             logger.debug "Resolving layout #{root}/views#{options[:layout]}" if defined?(logger)
           end
 
+          # Cleanup the template
+          @current_engine, engine_was = engine, @current_engine
+          @_out_buf,  _buf_was = "", @_out_buf
+
           # Pass arguments to Sinatra render method
           super(engine, data, options.dup, locals, &block)
+        ensure
+          @current_engine = engine_was
+          @_out_buf = _buf_was
         end
 
         ##

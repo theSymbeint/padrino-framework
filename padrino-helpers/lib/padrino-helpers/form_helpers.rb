@@ -47,7 +47,7 @@ module Padrino
         options["accept-charset"] ||= "UTF-8"
         inner_form_html  = hidden_form_method_field(desired_method)
         inner_form_html += capture_html(&block)
-        concat_content content_tag('form', inner_form_html, options)
+        concat_content content_tag(:form, inner_form_html, options)
       end
 
       ##
@@ -77,7 +77,7 @@ module Padrino
         legend_text = args[0].is_a?(String) ? args.first : nil
         legend_html = legend_text.blank? ? '' : content_tag(:legend, legend_text)
         field_set_content = legend_html + capture_html(&block)
-        concat_content content_tag('fieldset', field_set_content, options)
+        concat_content content_tag(:fieldset, field_set_content, options)
       end
 
       ##
@@ -401,12 +401,11 @@ module Padrino
       # Returns the blank option serving as a prompt if passed
       #
       def blank_option(prompt)
-        if prompt
-          case prompt.class.to_s
-          when 'String' then content_tag(:option, prompt, :value => '')
-          when 'Array'  then content_tag(:option, prompt.first, :value => prompt.last)
-          else               content_tag(:option, '', :value => '')
-          end
+        return unless prompt
+        case prompt
+          when String then content_tag(:option, prompt,       :value => '')
+          when Array  then content_tag(:option, prompt.first, :value => prompt.last)
+          else             content_tag(:option, '',           :value => '')
         end
       end
 
@@ -418,7 +417,7 @@ module Padrino
         #   configured_form_builder_class(nil) => StandardFormBuilder
         #
         def configured_form_builder_class(explicit_builder=nil)
-          default_builder    = self.respond_to?(:options) && self.options.default_builder
+          default_builder    = self.respond_to?(:settings) && self.settings.default_builder
           configured_builder = explicit_builder || default_builder || 'StandardFormBuilder'
           configured_builder = "Padrino::Helpers::FormBuilder::#{configured_builder}".constantize if configured_builder.is_a?(String)
           configured_builder

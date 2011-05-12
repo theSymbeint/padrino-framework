@@ -29,42 +29,11 @@ module Padrino
       #
       def new(*args, &bk)
         setup_application!
+        logging, logging_was = false, logging
+        show_exceptions, show_exceptions_was = false, show_exceptions
         super(*args, &bk)
-      end
-
-      ##
-      # Reloads the application files from all defined load paths
-      #
-      # This method is used from our Padrino Reloader during development mode
-      # in order to reload the source files.
-      #
-      # ==== Examples
-      #
-      #   MyApp.reload!
-      #
-      def reload!
-        reset! # Reset sinatra app
-        reset_routes! # Remove all existing user-defined application routes
-        Padrino.require_dependencies(File.join(self.root, "/models.rb")) # Reload models class
-        Padrino.require_dependencies(File.join(self.root, "/models/**/*.rb")) # Reload all models
-        Padrino.require_dependencies(self.app_file) # Reload the app file
-        register_initializers # Reload our middlewares
-        require_load_paths # Reload dependencies
-        default_filters! # Reload filters
-        default_errors!  # Reload our errors
-        I18n.reload! if defined?(I18n) # Reload also our translations
-      end
-
-      ##
-      # Resets application routes to only routes not defined by the user
-      #
-      # ==== Examples
-      #
-      #   MyApp.reset_routes!
-      #
-      def reset_routes!
-        reset_router!
-        default_routes!
+      ensure
+        logging, show_exceptions = logging_was, show_exceptions_was
       end
 
       ##
@@ -84,7 +53,6 @@ module Padrino
       #
       def setup_application!
         return if @_configured
-        self.calculate_paths
         self.register_initializers
         self.require_load_paths
         self.disable :logging # We need do that as default because Sinatra use commonlogger.
@@ -99,25 +67,11 @@ module Padrino
       end
 
       ##
-      # Run the Padrino app as a self-hosted server using
-      # Thin, Mongrel or WEBrick (in that order)
+      # Run the Padrino app as a self-hosted server using Thin
       #
       def run!(options={})
         return unless Padrino.load!
-        set options
-        handler      = detect_rack_handler
-        handler_name = handler.name.gsub(/.*::/, '')
-        puts "=> #{self.name}/#{Padrino.version} has taken the stage #{Padrino.env} on #{port}" unless handler_name =~/cgi/i
-        handler.run self, :Host => bind, :Port => port do |server|
-          trap(:INT) do
-            ## Use thins' hard #stop! if available, otherwise just #stop
-            server.respond_to?(:stop!) ? server.stop! : server.stop
-            puts "<= #{self.name} has ended his set (crowd applauds)" unless handler_name =~/cgi/i
-          end
-          set :running, true
-        end
-      rescue Errno::EADDRINUSE => e
-        puts "<= Someone is already performing on port #{port}!"
+        Padrino.server.start(options)
       end
 
       protected
@@ -128,22 +82,23 @@ module Padrino
           # Overwriting Sinatra defaults
           set :app_file, File.expand_path(caller_files.first || $0) # Assume app file is first caller
           set :environment, Padrino.env
-          set :raise_errors, true if development?
-          set :reload, true if development?
-          set :logging, false
-          set :padrino_logging, true
+          set :reload, Proc.new { development? }
+          set :logging, Proc.new { development? }
           set :method_override, true
           set :sessions, false
-          set :public, Proc.new { Padrino.root('public', self.uri_root) }
+          set :public, Proc.new { Padrino.root('public', uri_root) }
+          set :views, Proc.new { File.join(root,   "views") }
+          set :images_path, Proc.new { File.join(public, "images") }
           # Padrino specific
           set :uri_root, "/"
-          set :reload, Proc.new { development? }
           set :app_name, self.to_s.underscore.to_sym
           set :default_builder, 'StandardFormBuilder'
           set :flash, defined?(Rack::Flash)
           set :authentication, false
           # Padrino locale
           set :locale_path, Proc.new { Dir[File.join(self.root, "/locale/**/*.{rb,yml}")] }
+          # Load the Global Configurations
+          class_eval(&Padrino.apps_configuration) if Padrino.apps_configuration
         end
 
         ##
@@ -185,21 +140,12 @@ module Padrino
         end
 
         ##
-        # Calculates any required paths after app_file and root have been properly configured
-        # Executes as part of the setup_application! method
-        #
-        def calculate_paths
-          raise ApplicationSetupError.new("Please define 'app_file' option for #{self.name} app!") unless self.app_file
-          set :views, find_view_path if find_view_path
-          set :images_path, File.join(self.public, "/images") unless self.respond_to?(:images_path)
-        end
-
-        ##
         # Requires the Padrino middleware
         #
         def register_initializers
-          use Padrino::Logger::Rack, uri_root if Padrino.logger && (Padrino.logger.level == 0 && padrino_logging?)
-          use Rack::Flash                     if flash? && sessions?
+          use Padrino::ShowExceptions         if show_exceptions?
+          use Padrino::Logger::Rack, uri_root if Padrino.logger && logging?
+          use Rack::Flash                     if flash?
         end
 
         ##
@@ -216,23 +162,6 @@ module Padrino
         def require_load_paths
           load_paths.each { |path| Padrino.require_dependencies(File.join(self.root, path)) }
         end
-
-        ##
-        # Returns the path to the views directory from root by returning the first that is found
-        #
-        def find_view_path
-          @view_paths = ["views"].map { |path| File.join(self.root, path) }
-          @view_paths.find { |path| Dir[File.join(path, '/**/*')].any? }
-        end
     end # self
-
-    private
-      def clean_backtrace(trace)
-        return trace unless settings.clean_trace?
-        trace.reject { |line|
-          line =~ /lib\/sinatra.*\.rb|lib\/padrino.*\.rb/ ||
-            (defined?(Gem) && line.include?(Gem.dir))
-        }.map! { |line| line.gsub(/^\.\//, '') }
-      end
   end # Application
 end # Padrino

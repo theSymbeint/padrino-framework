@@ -2,6 +2,7 @@ PADRINO_ROOT = File.dirname(__FILE__) unless defined? PADRINO_ROOT
 PADRINO_ENV = 'test' unless defined? PADRINO_ENV
 
 require 'padrino-core'
+require 'slim'
 
 class RenderUser
   attr_accessor :name
@@ -14,6 +15,16 @@ class RenderDemo < Padrino::Application
   configure do
     set :logging, false
     set :padrino_logging, false
+  end
+
+  # get current engines from partials
+  get '/current_engine' do
+    render :current_engine
+  end
+
+  # get current engines from explicit engine partials
+  get '/explicit_engine' do
+    render :explicit_engine
   end
 
   # partial with object

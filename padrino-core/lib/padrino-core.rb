@@ -52,6 +52,27 @@ module Padrino
     end
 
     ##
+    # Configure Global Project Settings for mounted apps. These can be overloaded
+    # in each individual app's own personal configuration. This can be used like:
+    #
+    #   Padrino.configure_apps do
+    #     enable  :sessions
+    #     disable :raise_errors
+    #   end
+    #
+    def configure_apps(&block)
+      @_global_configuration = block if block_given?
+    end
+
+    ###
+    # Returns project-wide configuration settings
+    # defined in 'configure_apps' block
+    #
+    def apps_configuration
+      @_global_configuration
+    end
+
+    ##
     # Default encoding to UTF8.
     #
     def set_encoding
