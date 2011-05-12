@@ -71,7 +71,7 @@ module Padrino
       #
       def run!(options={})
         return unless Padrino.load!
-        Padrino.server.start(options)
+        Padrino::Server.start(self, options)
       end
 
       protected

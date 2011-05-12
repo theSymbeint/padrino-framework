@@ -37,6 +37,7 @@ module Padrino
     #
     def load!
       return false if loaded?
+      Thread.current[:padrino_loaded] = true
       @_called_from = first_caller
       set_encoding
       set_load_paths(*load_paths) # We set the padrino load paths
@@ -45,7 +46,6 @@ module Padrino
       before_load.each { |bl| bl.call } # Run before hooks
       dependency_paths.each { |path| require_dependencies(path) }
       after_load.each { |al| al.call } # Run after hooks
-      Thread.current[:padrino_loaded] = true
     end
 
     ##
