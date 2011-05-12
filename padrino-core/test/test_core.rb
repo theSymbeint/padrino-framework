@@ -1,4 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/helper')
+require File.expand_path(File.dirname(__FILE__) + '/fixtures/apps/simple')
 
 class TestCore < Test::Unit::TestCase
   def teardown
@@ -57,7 +58,7 @@ class TestCore < Test::Unit::TestCase
       }
 
       Padrino.use(test)
-
+      Padrino.mount(SimpleDemo).to("/")
       res = Rack::MockRequest.new(Padrino.application).get("/")
       assert_equal "yes", res["Middleware-Called"]
     end
