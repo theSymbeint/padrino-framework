@@ -33,6 +33,7 @@ group :development do
   gem "bcrypt-ruby", :require => "bcrypt"
   gem "phocus"
   gem "builder", ">= 2.1.2"
+  gem "activemodel","3.0.9"
   platforms :mri_18 do
     gem "rcov", "~> 0.9.8"
     gem "ruby-prof", ">= 0.9.1"
